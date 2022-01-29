@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+    <title>身体入力</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/8.7.1/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/8.7.1/firebase-auth.js"></script>
+    <script defer src="/__/firebase/8.7.1/firebase-database.js"></script>
+    <script defer src="/__/firebase/8.7.1/firebase-firestore.js"></script>
+    <script defer src="/__/firebase/8.7.1/firebase-functions.js"></script>
+    <script defer src="/__/firebase/8.7.1/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/8.7.1/firebase-storage.js"></script>
+    <script defer src="/__/firebase/8.7.1/firebase-analytics.js"></script>
+    <script defer src="/__/firebase/8.7.1/firebase-remote-config.js"></script>
+    <script defer src="/__/firebase/8.7.1/firebase-performance.js"></script>
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+  </head>
+
+  <body>
+    <div class="bg_pattern2 Boxes"></div>
+    
+    <div class="container">
+        <ul class="nav justify-content-end  navbar-dark mt-4">
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">TOP</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link  active" href="#">身体入力</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="cast.html">キャラクター側</a>
+            </li>
+        </ul>
+
+        <div class="row mt-4 mb-4">
+            <h1 class="posetitle">身体入力</h1>
+        </div>
+
+        <div class="row mt-4 mb-4">
+            <div class="col-md-1">
+                <button class="Button-style2" type="button" onclick="init()">Start</button>
+            </div>
+            <div class="col-md-11 mt-4">
+              <h5>身体入力を開始します</h5>
+            </div>
+          </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div><canvas id="canvas"></canvas><img id="switching_image_place" width="100%"></div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <h2><div id="result_text"></div></h2>
+                <img id="model_image_place" width="100%">
+            </div>
+        </div>
+        <div id="label-container"></div>
+    </div>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="/__/firebase/8.7.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.7.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.7.1/firebase-database.js"></script>
+    
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+        https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="/__/firebase/8.7.1/firebase-analytics.js"></script>
+    <!-- Initialize Firebase -->
+    <script src="/__/firebase/init.js"></script>
+    <script src="js/config.js"></script>
+
+    <!-- Teachable Machine Pose Model -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
+    <script type="text/javascript">
+        // More API functions here:
+        // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/pose
+
+        // the link to your model provided by Teachable Machine export panel
+
+        const URL1 = "./model/model1/";
+        const URL2 = "./model/model2/";
+        const URL3 = "./model/model3/";
+        const URL4 = "./model/model4/";
+        const URL5 = "./model/model5/";
+        const URL6 = "./model/model6/";
+        const URL7_1 = "./model/model7_1/";
+        const URL7_2 = "./model/model7_2/";
+        const URL8_1 = "./model/model8_1/";
+        const URL8_2 = "./model/model8_2/";
+
+        var URL = URL1;
+
+        let model, webcam, ctx, labelContainer, maxPredictions;
+
+        //RealtimeDB初期設定
+        var database = firebase.database();
+
+        function updateModel1(type){
+            if(type == 0){
+                database.ref('modelName').child('model1').update({next1_2:1});
+                database.ref('modelName').child('model1').update({stay:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model1').update({next1_2:0});
+                database.ref('modelName').child('model1').update({stay:0});
+            }  else if(type == 2){
+                database.ref('modelName').child('model1').update({next1_2:0});
+                database.ref('modelName').child('model1').update({stay:1});
+            }
+        }
+        
+        function updateModel2(type){
+            if(type == 0){
+                database.ref('modelName').child('model2').update({next2_3:1});
+                database.ref('modelName').child('model2').update({hand:0});
+                database.ref('modelName').child('model2').update({yell:0});
+                database.ref('modelName').child('model2').update({back2_1:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model2').update({next2_3:0});
+                database.ref('modelName').child('model2').update({hand:1});
+                database.ref('modelName').child('model2').update({yell:0});
+                database.ref('modelName').child('model2').update({back2_1:0});
+            } else if(type == 2){
+                database.ref('modelName').child('model2').update({next2_3:0});
+                database.ref('modelName').child('model2').update({hand:0});
+                database.ref('modelName').child('model2').update({yell:1});
+                database.ref('modelName').child('model2').update({back2_1:0});
+            } else if(type == 3){
+                database.ref('modelName').child('model2').update({next2_3:0});
+                database.ref('modelName').child('model2').update({hand:0});
+                database.ref('modelName').child('model2').update({yell:0});
+                database.ref('modelName').child('model2').update({back2_1:1});
+            } else if(type == 4){
+                database.ref('modelName').child('model2').update({next2_3:0});
+                database.ref('modelName').child('model2').update({hand:0});
+                database.ref('modelName').child('model2').update({yell:0});
+                database.ref('modelName').child('model2').update({back2_1:0});
+            }
+        }
+
+        function updateModel3(){
+            if(type == 0){
+                database.ref('modelName').child('model3').update({defalt_move:1});
+                database.ref('modelName').child('model3').update({point_move:0});
+                database.ref('modelName').child('model3').update({camera:0});
+                database.ref('modelName').child('model3').update({back3_2:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model3').update({defalt_move:0});
+                database.ref('modelName').child('model3').update({point_move:1});
+                database.ref('modelName').child('model3').update({camera:0});
+                database.ref('modelName').child('model3').update({back3_2:0});
+            } else if(type == 2){
+                database.ref('modelName').child('model3').update({defalt_move:0});
+                database.ref('modelName').child('model3').update({point_move:0});
+                database.ref('modelName').child('model3').update({camera:1});
+                database.ref('modelName').child('model3').update({back3_2:0});
+            } else if(type == 3){
+                database.ref('modelName').child('model3').update({defalt_move:0});
+                database.ref('modelName').child('model3').update({point_move:0});
+                database.ref('modelName').child('model3').update({camera:0});
+                database.ref('modelName').child('model3').update({back3_2:1});
+            } else if(type == 4){
+                database.ref('modelName').child('model3').update({defalt_move:0});
+                database.ref('modelName').child('model3').update({point_move:0});
+                database.ref('modelName').child('model3').update({camera:0});
+                database.ref('modelName').child('model3').update({back3_2:0});
+            }
+        }
+
+        function updateModel4(){
+            if(type == 0){
+                database.ref('modelName').child('model4').update({xy_move:1});
+                database.ref('modelName').child('model4').update({z_move:0});
+                database.ref('modelName').child('model4').update({back4_3:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model4').update({xy_move:0});
+                database.ref('modelName').child('model4').update({z_move:1});
+                database.ref('modelName').child('model4').update({back4_3:0});
+            } else if(type == 2){
+                database.ref('modelName').child('model4').update({xy_move:0});
+                database.ref('modelName').child('model4').update({z_move:0});
+                database.ref('modelName').child('model4').update({back4_3:1});
+            } else if(type == 3){
+                database.ref('modelName').child('model4').update({xy_move:0});
+                database.ref('modelName').child('model4').update({z_move:0});
+                database.ref('modelName').child('model4').update({back4_3:0});
+            }
+        }
+
+        function updateModel5(){
+            if(type == 0){
+                database.ref('modelName').child('model5').update({right_point:1});
+                database.ref('modelName').child('model5').update({left_point:0});
+                database.ref('modelName').child('model5').update({back5_3:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model5').update({right_point:0});
+                database.ref('modelName').child('model5').update({left_point:1});
+                database.ref('modelName').child('model5').update({back5_3:0});
+            } else if(type == 2){
+                database.ref('modelName').child('model5').update({right_point:0});
+                database.ref('modelName').child('model5').update({left_point:0});
+                database.ref('modelName').child('model5').update({back5_3:1});
+            } else if(type == 3){
+                database.ref('modelName').child('model5').update({right_point:0});
+                database.ref('modelName').child('model5').update({left_point:0});
+                database.ref('modelName').child('model5').update({back5_3:0});
+            }
+        }
+
+        function updateModel6(){
+            if(type == 0){
+                database.ref('modelName').child('model6').update({camera_xy_move:1});
+                database.ref('modelName').child('model6').update({camera_z_move:0});
+                database.ref('modelName').child('model6').update({shutter:0});
+                database.ref('modelName').child('model6').update({back6_3:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model6').update({camera_xy_move:0});
+                database.ref('modelName').child('model6').update({camera_z_move:1});
+                database.ref('modelName').child('model6').update({shutter:0});
+                database.ref('modelName').child('model6').update({back6_3:0});
+            } else if(type == 2){
+                database.ref('modelName').child('model6').update({camera_xy_move:0});
+                database.ref('modelName').child('model6').update({camera_z_move:0});
+                database.ref('modelName').child('model6').update({shutter:1});
+                database.ref('modelName').child('model6').update({back6_3:0});
+            } else if(type == 3){
+                database.ref('modelName').child('model6').update({camera_xy_move:0});
+                database.ref('modelName').child('model6').update({camera_z_move:0});
+                database.ref('modelName').child('model6').update({shutter:0});
+                database.ref('modelName').child('model6').update({back6_3:1});
+            } else if(type == 4){
+                database.ref('modelName').child('model6').update({camera_xy_move:0});
+                database.ref('modelName').child('model6').update({camera_z_move:0});
+                database.ref('modelName').child('model6').update({shutter:0});
+                database.ref('modelName').child('model6').update({back6_3:0});
+            }
+        }
+
+        function updateModel7_1(){
+            if(type == 0){
+                database.ref('modelName').child('model7_1').update({right:1});
+                database.ref('modelName').child('model7_1').update({left:0});
+                database.ref('modelName').child('model7_1').update({front:0});
+                database.ref('modelName').child('model7_1').update({back:0});
+                database.ref('modelName').child('model7_1').update({back7_4:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model7_1').update({right:0});
+                database.ref('modelName').child('model7_1').update({left:1});
+                database.ref('modelName').child('model7_1').update({front:0});
+                database.ref('modelName').child('model7_1').update({back:0});
+                database.ref('modelName').child('model7_1').update({back7_4:0});
+            } else if(type == 2){
+                database.ref('modelName').child('model7_1').update({right:0});
+                database.ref('modelName').child('model7_1').update({left:0});
+                database.ref('modelName').child('model7_1').update({front:1});
+                database.ref('modelName').child('model7_1').update({back:0});
+                database.ref('modelName').child('model7_1').update({back7_4:0});
+            } else if(type == 3){
+                database.ref('modelName').child('model7_1').update({right:0});
+                database.ref('modelName').child('model7_1').update({left:0});
+                database.ref('modelName').child('model7_1').update({front:0});
+                database.ref('modelName').child('model7_1').update({back:1});
+                database.ref('modelName').child('model7_1').update({back7_4:0});
+            } else if(type == 4){
+                database.ref('modelName').child('model7_1').update({right:0});
+                database.ref('modelName').child('model7_1').update({left:0});
+                database.ref('modelName').child('model7_1').update({front:0});
+                database.ref('modelName').child('model7_1').update({back:0});
+                database.ref('modelName').child('model7_1').update({back7_4:1});
+            } else if(type == 5){
+                database.ref('modelName').child('model7_1').update({right:0});
+                database.ref('modelName').child('model7_1').update({left:0});
+                database.ref('modelName').child('model7_1').update({front:0});
+                database.ref('modelName').child('model7_1').update({back:0});
+                database.ref('modelName').child('model7_1').update({back7_4:0});
+            }
+        }
+
+        function updateModel7_2(){
+            if(type == 0){
+                database.ref('modelName').child('model7_2').update({camera_right:1});
+                database.ref('modelName').child('model7_2').update({camera_left:0});
+                database.ref('modelName').child('model7_2').update({camera_front:0});
+                database.ref('modelName').child('model7_2').update({camera_back:0});
+                database.ref('modelName').child('model7_2').update({back7_6:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model7_2').update({camera_right:0});
+                database.ref('modelName').child('model7_2').update({camera_left:1});
+                database.ref('modelName').child('model7_2').update({camera_front:0});
+                database.ref('modelName').child('model7_2').update({camera_back:0});
+                database.ref('modelName').child('model7_2').update({back7_6:0});
+            } else if(type == 2){
+                database.ref('modelName').child('model7_2').update({camera_right:0});
+                database.ref('modelName').child('model7_2').update({camera_left:0});
+                database.ref('modelName').child('model7_2').update({camera_front:1});
+                database.ref('modelName').child('model7_2').update({camera_back:0});
+                database.ref('modelName').child('model7_2').update({back7_6:0});
+            } else if(type == 3){
+                database.ref('modelName').child('model7_2').update({camera_right:0});
+                database.ref('modelName').child('model7_2').update({camera_left:0});
+                database.ref('modelName').child('model7_2').update({camera_front:0});
+                database.ref('modelName').child('model7_2').update({camera_back:1});
+                database.ref('modelName').child('model7_2').update({back7_6:0});
+            } else if(type == 4){
+                database.ref('modelName').child('model7_2').update({camera_right:0});
+                database.ref('modelName').child('model7_2').update({camera_left:0});
+                database.ref('modelName').child('model7_2').update({camera_front:0});
+                database.ref('modelName').child('model7_2').update({camera_back:0});
+                database.ref('modelName').child('model7_2').update({back7_6:1});
+            } else if(type == 5){
+                database.ref('modelName').child('model7_2').update({camera_right:0});
+                database.ref('modelName').child('model7_2').update({camera_left:0});
+                database.ref('modelName').child('model7_2').update({camera_front:0});
+                database.ref('modelName').child('model7_2').update({camera_back:0});
+                database.ref('modelName').child('model7_2').update({back7_6:0});
+            }
+        }
+
+        function updateModel8_1(){
+            if(type == 0){
+                database.ref('modelName').child('model8_1').update({up:1});
+                database.ref('modelName').child('model8_1').update({down:0});
+                database.ref('modelName').child('model8_1').update({back8_4:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model8_1').update({up:0});
+                database.ref('modelName').child('model8_1').update({down:1});
+                database.ref('modelName').child('model8_1').update({back8_4:0});
+            } else if(type == 2){
+                database.ref('modelName').child('model8_1').update({up:0});
+                database.ref('modelName').child('model8_1').update({down:0});
+                database.ref('modelName').child('model8_1').update({back8_4:1});
+            } else if(type == 3){
+                database.ref('modelName').child('model8_1').update({up:0});
+                database.ref('modelName').child('model8_1').update({down:0});
+                database.ref('modelName').child('model8_1').update({back8_4:0});
+            }
+        }
+
+        function updateModel8_2(){
+            if(type == 0){
+                database.ref('modelName').child('model8_2').update({camera_up:1});
+                database.ref('modelName').child('model8_2').update({camera_down:0});
+                database.ref('modelName').child('model8_2').update({back8_6:0});
+            } else if(type == 1){
+                database.ref('modelName').child('model8_2').update({camera_up:0});
+                database.ref('modelName').child('model8_2').update({camera_down:1});
+                database.ref('modelName').child('model8_2').update({back8_6:0});
+            } else if(type == 2){
+                database.ref('modelName').child('model8_2').update({camera_up:0});
+                database.ref('modelName').child('model8_2').update({camera_down:0});
+                database.ref('modelName').child('model8_2').update({back8_6:1});
+            } else if(type == 3){
+                database.ref('modelName').child('model8_2').update({camera_up:0});
+                database.ref('modelName').child('model8_2').update({camera_down:0});
+                database.ref('modelName').child('model8_2').update({back8_6:0});
+            }
+        }
+
+        function resetArray(){
+            database.ref('modelName').child('model1').update({next1_2:0});
+            database.ref('modelName').child('model1').update({stay:0});
+
+            database.ref('modelName').child('model2').update({next2_3:0});
+            database.ref('modelName').child('model2').update({hand:0});
+            database.ref('modelName').child('model2').update({yell:0});
+            database.ref('modelName').child('model2').update({back2_1:0});
+
+            database.ref('modelName').child('model3').update({defalt_move:0});
+            database.ref('modelName').child('model3').update({point_move:0});
+            database.ref('modelName').child('model3').update({camera:0});
+            database.ref('modelName').child('model3').update({back3_2:0});
+
+            database.ref('modelName').child('model4').update({xy_move:0});
+            database.ref('modelName').child('model4').update({z_move:0});
+            database.ref('modelName').child('model4').update({back4_3:0});
+
+            database.ref('modelName').child('model5').update({right_point:0});
+            database.ref('modelName').child('model5').update({left_point:0});
+            database.ref('modelName').child('model5').update({back5_3:0});
+
+            database.ref('modelName').child('model6').update({camera_xy_move:0});
+            database.ref('modelName').child('model6').update({camera_z_move:0});
+            database.ref('modelName').child('model6').update({shutter:0});
+            database.ref('modelName').child('model6').update({back6_3:0});
+
+            database.ref('modelName').child('model7_1').update({right:0});
+            database.ref('modelName').child('model7_1').update({left:0});
+            database.ref('modelName').child('model7_1').update({front:0});
+            database.ref('modelName').child('model7_1').update({back:0});
+            database.ref('modelName').child('model7_1').update({back7_4:0});
+
+            database.ref('modelName').child('model7_2').update({camera_right:0});
+            database.ref('modelName').child('model7_2').update({camera_left:0});
+            database.ref('modelName').child('model7_2').update({camera_front:0});
+            database.ref('modelName').child('model7_2').update({camera_back:0});
+            database.ref('modelName').child('model7_2').update({back7_6:0});
+
+            database.ref('modelName').child('model8_1').update({up:0});
+            database.ref('modelName').child('model8_1').update({down:0});
+            database.ref('modelName').child('model8_1').update({back8_4:0});
+
+            database.ref('modelName').child('model8_2').update({camera_up:0});
+            database.ref('modelName').child('model8_2').update({camera_down:0});
+            database.ref('modelName').child('model8_2').update({back8_6:0});
+        }
+
+        function writeModel1Data(modelName,next1_2,stay) {
+            database.ref('modelName/' + modelName).set({
+                next1_2:next1_2 , stay:stay
+            });
+        }
+        writeModel1Data("model1",0,0);
+
+        function writeModel2Data(modelName,next2_3,hand,yell,back2_1) {
+            database.ref('modelName/' + modelName).set({
+                next2_3:next2_3 , hand:hand , yell:yell , back2_1:back2_1
+            });
+        }
+        writeModel2Data("model2",0,0,0,0);
+
+        function writeModel3Data(modelName,defalt_move,point_move,camera,back3_2) {
+            database.ref('modelName/' + modelName).set({
+                defalt_move:defalt_move , point_move:point_move , camera:camera , back3_2:back3_2
+            });
+        }
+        writeModel3Data("model3",0,0,0,0);
+
+        function writeModel4Data(modelName,xy_move,z_move,back4_3) {
+            database.ref('modelName/' + modelName).set({
+                xy_move:xy_move , z_move:z_move , back4_3:back4_3
+            });
+        }
+        writeModel4Data("model4",0,0,0);
+
+        function writeModel5Data(modelName,right_point,left_point,back5_3) {
+            database.ref('modelName/' + modelName).set({
+                right_point:right_point , left_point:left_point , back5_3:back5_3
+            });
+        }
+        writeModel5Data("model5",0,0,0);
+
+        function writeModel6Data(modelName,camera_xy_move,camera_z_move,shutter,back6_3) {
+            database.ref('modelName/' + modelName).set({
+                camera_xy_move:camera_xy_move , camera_z_move:camera_z_move , shutter:shutter , back6_3:back6_3
+            });
+        }
+        writeModel6Data("model6",0,0,0,0);
+
+        function writeModel7_1Data(modelName,right,left,front,back,back7_4) {
+            database.ref('modelName/' + modelName).set({
+                right:right , left:left , front:front , back:back , back7_4:back7_4
+            });
+        }
+        writeModel7_1Data("model7_1",0,0,0,0,0);
+
+        function writeModel7_2Data(modelName,camera_right,camera_left,camera_front,camera_back,back7_6) {
+            database.ref('modelName/' + modelName).set({
+                camera_right:camera_right , camera_left:camera_left , camera_front:camera_front , camera_back:camera_back , back7_6:back7_6
+            });
+        }
+        writeModel7_2Data("model7_2",0,0,0,0,0);
+
+        function writeModel8_1Data(modelName,up,down,back8_4) {
+            database.ref('modelName/' + modelName).set({
+                up:up , down:down , back8_4:back8_4
+            });
+        }
+        writeModel8_1Data("model8_1",0,0,0);
+
+        function writeModel8_2Data(modelName,camera_up,camera_down,back8_6) {
+            database.ref('modelName/' + modelName).set({
+                camera_up:camera_up , camera_down:camera_down , back8_6:back8_6
+            });
+        }
+        writeModel8_2Data("model8_2",0,0,0);
+
+        async function init() {
+
+            var modelURL = URL + "model.json";
+            var metadataURL = URL + "metadata.json";
+
+            // load the model and metadata
+            // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+            // Note: the pose library adds a tmPose object to your window (window.tmPose)
+            model = await tmPose.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            // Convenience function to setup a webcam
+            const size = document.body.clientWidth/3;
+            const flip = true; // whether to flip the webcam
+            webcam = new tmPose.Webcam(size, size, flip); // width, height, flip
+            await webcam.setup(); // request access to the webcam
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+
+            // append/get elements to the DOM
+            const canvas = document.getElementById("canvas");
+            canvas.width = size;
+            canvas.height = size;
+            ctx = canvas.getContext("2d");
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) { // and class labels
+                labelContainer.appendChild(document.createElement("div"));
+            }
+        }
+
+        var checkLoop = true;
+
+        async function loop(timestamp) {
+
+            if(checkLoop == true){
+                webcam.update(); // update the webcam frame
+                await predict();
+                window.requestAnimationFrame(loop);
+            } else {
+
+            }
+        }
+
+        //配列を作る
+        var model1_prediction_array = new Array();
+        var model2_prediction_array = new Array();
+        var model3_prediction_array = new Array();
+        var model4_prediction_array = new Array();
+        var model5_prediction_array = new Array();
+        var model6_prediction_array = new Array();
+        var model7_1_prediction_array = new Array();
+        var model7_2_prediction_array = new Array();
+        var model8_1_prediction_array = new Array();
+        var model8_2_prediction_array = new Array();
+
+        const img = document.getElementById("switching_image_place");
+        const model_img = document.getElementById("model_image_place");
+        img.style.display = "none";
+
+        img_num1 = "./img/model1.png";
+        img_num2 = "./img/model2.png";
+        img_num3 = "./img/model3.png";
+        img_num4 = "./img/model4.png";
+        img_num5 = "./img/model5.png";
+        img_num6 = "./img/model6.png";
+        img_num7_1 = "./img/model7_1.png";
+        img_num7_2 = "./img/model7_2.png";
+        img_num8_1 = "./img/model8_1.png";
+        img_num8_2 = "./img/model8_2.png";
+
+        model_img1 = "./img/img1.png";
+        model_img2 = "./img/img2.png";
+        model_img3 = "./img/img3.png";
+        model_img4 = "./img/img4.png";
+        model_img5 = "./img/img5.png";
+        model_img6 = "./img/img6.png";
+        model_img7_1 = "./img/img7_1.png";
+        model_img7_2 = "./img/img7_2.png";
+        model_img8_1 = "./img/img8_1.png";
+        model_img8_2 = "./img/img8_2.png";
+
+
+        model_img.style.display = "none";
+
+        resultText = document.getElementById("result_text");
+
+        // タイマーの開始
+        function startTimer(img_num) {
+            img.src = img_num;
+            checkLoop = false;
+            canvas.style.display = "none";
+            img.style.display = "block";
+            //console.log("タイムスタート");
+            timerId = setTimeout( executeWork , 2000 );
+        }
+
+        // タイマーの中止
+        function abortTimer() {
+            clearTimeout(timerId);
+            //console.log("タイムクリア");
+        }
+
+        // 処理の中身
+        function executeWork() {
+            //何らかの処理
+            //console.log("処理スタート");
+            checkLoop = true;
+            window.requestAnimationFrame(loop);
+            img.style.display = "none";
+            canvas.style.display = "block";
+            resetArray();
+            abortTimer();
+        }
+
+        async function predict() {
+            
+            var modelURL = URL + "model.json";
+            var metadataURL = URL + "metadata.json";
+
+            // load the model and metadata
+            // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+            // Note: the pose library adds a tmPose object to your window (window.tmPose)
+            model = await tmPose.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            //labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) { // and class labels
+                labelContainer.appendChild(document.createElement("div"));
+            }
+
+            // Prediction #1: run input through posenet
+            // estimatePose can take in an image, video or canvas html element
+            const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
+            // Prediction 2: run input through teachable machine classification model
+            const prediction = await model.predict(posenetOutput);
+
+            for (let i = 0; i < maxPredictions; i++) {
+                // const classPrediction =
+                //     prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                // labelContainer.childNodes[i].innerHTML = classPrediction;
+
+                if(URL==URL1){
+                    model1_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("入力スタート画面(model1)に移行しました！！");
+                    model_img.src = model_img1;
+
+                    if(model1_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>アクション選択画面に移行します<p>";
+                            type = 0;
+                            updateModel1(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num2);
+                            URL = URL2;
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>入力スタート画面の表示/非表示<p>";
+                            type = 1;
+                            updateModel1(type);
+                            model_img.style.display = "block";
+                        } else if(i==2){
+                            resultText.innerHTML = "";
+                            type = 2;
+                            updateModel1(type);
+                            model_img.style.display = "block";
+                        }
+                    }
+                } else if(URL==URL2){
+                    model2_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("アクション選択画面(model2)に移行しました！！");
+                    model_img.src = model_img2;
+
+                    if(model2_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>移動・カメラ機能画面に移行します<p>";
+                            type = 0;
+                            updateModel2(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num3);
+                            URL = URL3;
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>手を振りました<p>";
+                            type = 1;
+                            updateModel2(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==2){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>エールを送りました<p>";
+                            type = 2;
+                            updateModel2(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==3){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>入力スタート画面に移行します<p>";
+                            type = 3;
+                            updateModel2(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num1);
+                            URL = URL1;
+                            //console.log(prediction[i].className);
+                        }else if(i==4){
+                            resultText.innerHTML = "";
+                            type = 4;
+                            updateModel2(type);
+                            model_img.style.display = "block";
+                        }
+                    }
+                } else if(URL==URL3){
+                    model3_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("移動・カメラ機能画面(model3)に移行しました！！");
+                    model_img.src = model_img3;
+
+                    if(model3_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>通常移動画面に移行します<p>";
+                            type = 0;
+                            updateModel3(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num4);
+                            URL = URL4;
+                            //console.log(prediction[i].className);
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>選択ポイント移動画面に移行します<p>";
+                            type = 1;
+                            updateModel3(type);;
+                            model_img.style.display = "none";
+                            startTimer(img_num5);
+                            URL = URL5;
+                            //console.log(prediction[i].className);
+                        }else if(i==2){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラ機能画面に移行します<p>";
+                            type = 2;
+                            updateModel3(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num6);
+                            URL = URL6;
+                            //console.log(prediction[i].className);
+                        }else if(i==3){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>アクション選択画面に移行します<p>";
+                            type = 3;
+                            updateModel3(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num2);
+                            URL = URL2;
+                            //console.log(prediction[i].className);
+                        }else if(i==4){
+                            resultText.innerHTML = "";
+                            type = 4;
+                            updateModel3(type);
+                            model_img.style.display = "block";
+                        }
+                    }
+                } else if(URL==URL4){
+                    model4_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("通常移動画面(model4)に移行しました！！");
+                    model_img.src = model_img4;
+
+                    if(model4_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>前後左右移動画面に移行します<p>";
+                            type = 0;
+                            updateModel4(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num7_1);
+                            URL = URL7_1;
+                            //console.log(prediction[i].className);
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>上下移動画面に移行します<p>";
+                            type = 1;
+                            updateModel4(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num8_1);
+                            URL = URL8_1;
+                            //console.log(prediction[i].className);
+                        }else if(i==2){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>移動・カメラ機能画面に移行します<p>";
+                            type = 2;
+                            updateModel4(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num3);
+                            URL = URL3;
+                            //console.log(prediction[i].className);
+                        }else if(i==3){
+                            resultText.innerHTML = "";
+                            type = 3;
+                            updateModel4(type);
+                            model_img.style.display = "block";
+                        }
+                    }
+                } else if(URL==URL5){
+                    model5_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("選択ポイント移動画面(model5)に移行しました！！");
+                    model_img.src = model_img5;
+
+                    if(model5_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>右の選択ポイントへ移動します<p>";
+                            type = 0;
+                            updateModel5(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>左の選択ポイントへ移動します<p>";
+                            type = 1;
+                            updateModel5(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==2){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>移動・カメラ機能画面に移行します<p>";
+                            type = 2;
+                            updateModel5(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num3);
+                            URL = URL3;
+                            //console.log(prediction[i].className);
+                        }else if(i==3){
+                            resultText.innerHTML = "";
+                            model_img.style.display = "block";
+                            type =3;
+                            updateModel5(type);
+                        }
+                    }
+                } else if(URL==URL6){
+                    model6_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("カメラ機能画面(model6)に移行しました！！");
+                    model_img.src = model_img6;
+
+                    if(model6_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラの前後左右移動画面に移行します<p>";
+                            type = 0;
+                            updateModel6(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num7_2);
+                            URL = URL7_2;
+                            //console.log(prediction[i].className);
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラの上下移動画面に移行します<p>";
+                            type = 1;
+                            updateModel6(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num8_2);
+                            URL = URL8_2;
+                            //console.log(prediction[i].className);
+                        }else if(i==2){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>シャッターを切ります<p>";
+                            type = 2;
+                            updateModel6(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==3){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>移動・カメラ機能画面に移行します<p>";
+                            type = 3;
+                            updateModel6(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num3);
+                            URL = URL3;
+                            //console.log(prediction[i].className);
+                        }else if(i==4){
+                            resultText.innerHTML = "";
+                            model_img.style.display = "block";
+                            type = 4;
+                            updateModel6(type);
+                        }
+                    }
+                } else if(URL==URL7_1){
+                    model7_1_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("前後左右移動画面(model7_1)に移行しました！！");
+                    model_img.src = model_img7_1;
+
+                    if(model7_1_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>右に移動します<p>";
+                            type = 0;
+                            updateModel7_1(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>左に移動します<p>";
+                            type = 1;
+                            updateModel7_1(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==2){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>前に移動します<p>";
+                            type = 2;
+                            updateModel7_1(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==3){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>後ろに移動します<p>";
+                            type = 3;
+                            updateModel7_1(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==4){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>通常移動画面に移行します<p>";
+                            type = 4;
+                            updateModel7_1(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num4);
+                            URL = URL4;
+                            //console.log(prediction[i].className);
+                        }else if(i==5){
+                            resultText.innerHTML = "";
+                            type = 5;
+                            updateModel7_1(type);
+                            model_img.style.display = "block";
+                        }
+                    } 
+                } else if(URL==URL7_2){
+                    model7_2_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("カメラの前後左右移動画面(model7_2)に移行しました！！");
+                    model_img.src = model_img7_2;
+
+                    if(model7_2_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラを右に移動します<p>";
+                            type = 0;
+                            updateModel7_2(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラを左に移動します<p>";
+                            type = 1;
+                            updateModel7_2(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==2){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラを前に移動します<p>";
+                            type = 2;
+                            updateModel7_2(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==3){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラを後ろに移動します<p>";
+                            type = 3;
+                            updateModel7_2(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==4){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラ機能画面に移行します<p>";
+                            type = 4;
+                            updateModel7_2(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num6);
+                            URL = URL6;
+                            //console.log(prediction[i].className);
+                        }else if(i==5){
+                            resultText.innerHTML = "";
+                            type = 5;
+                            updateModel7_2(type);
+                            model_img.style.display = "block";
+                        }
+                    } 
+                } else if(URL==URL8_1){
+                    model8_1_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("上下移動画面(model8_1)に移行しました！！");
+                    model_img.src = model_img8_1;
+
+                    if(model8_1_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>上に移動します<p>";
+                            type = 0;
+                            updateModel8_1(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>下に移動します<p>";
+                            type = 1;
+                            updateModel8_1(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==2){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>通常移動画面に移行します<p>";
+                            type = 2;
+                            updateModel8_1(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num4);
+                            URL = URL4;
+                            //console.log(prediction[i].className);
+                        }else if(i==3){
+                            resultText.innerHTML = "";
+                            type = 3;
+                            updateModel8_1(type);
+                            model_img.style.display = "block";
+                        }
+                    } 
+                } else if(URL==URL8_2){
+                    model8_2_prediction_array[i] = prediction[i].probability.toFixed(2);
+                    //console.log("カメラの上下移動画面(model8_2)に移行しました！！");
+                    model_img.src = model_img8_2;
+
+                    if(model8_2_prediction_array[i]>=1.0){
+                        if(i==0){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラを上に移動します<p>";
+                            type = 0;
+                            updateModel8_2(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==1){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラを下に移動します<p>";
+                            type = 1;
+                            updateModel8_2(type);
+                            model_img.style.display = "block";
+                            //console.log(prediction[i].className);
+                        }else if(i==2){
+                            resultText.innerHTML = "<p>入力結果：<p>" + "<p>カメラ機能画面に移行します<p>";
+                            type = 2;
+                            updateModel8_2(type);
+                            model_img.style.display = "none";
+                            startTimer(img_num6);
+                            URL = URL6;
+                            //console.log(prediction[i].className);
+                        }else if(i==3){
+                            resultText.innerHTML = "";
+                            type = 3;
+                            updateModel8_2(type);
+                            model_img.style.display = "block";
+                        }
+                    } 
+                }
+            }
+            // finally draw the poses
+            drawPose(pose);
+        }
+
+        function drawPose(pose) {
+            if (webcam.canvas) {
+                ctx.drawImage(webcam.canvas, 0, 0);
+                // draw the keypoints and skeleton
+                if (pose) {
+                    const minPartConfidence = 0.5;
+                    tmPose.drawKeypoints(pose.keypoints, minPartConfidence, ctx);
+                    tmPose.drawSkeleton(pose.keypoints, minPartConfidence, ctx);
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+</body>
+</html>

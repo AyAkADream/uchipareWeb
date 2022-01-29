@@ -1,0 +1,227 @@
+/*=============
+.bg_pattern
+==============*/
+
+.bg_pattern {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #faca7b;
+    opacity: 0.4;
+    z-index: -1;
+}
+.Cross {
+    background: radial-gradient(
+        circle, transparent 20%, 
+        #faca7b 20%, #faca7b 80%, transparent 80%, transparent), 
+    radial-gradient(circle, transparent 20%, 
+        #faca7b 20%, #faca7b 80%, transparent 80%, transparent) 50px 50px, 
+    linear-gradient(#f096a0 4px, transparent 4px) 0 -2px,
+    linear-gradient(90deg, #f096a0 4px, #faca7b 4px) -2px 0;
+    background-size: 100px 100px, 100px 100px, 50px 50px, 50px 50px;
+}
+
+.bg_pattern2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #e0f1f4;
+    opacity: 0.4;
+    z-index: -1;
+}
+
+.Boxes {
+    background-image:  linear-gradient(#faca7b 2px, transparent 2px), linear-gradient(to right, #faca7b 2px, #e0f1f4 2px);
+    background-size: 40px 40px;
+}
+
+.bg_pattern3 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #f096a0;
+    opacity: 0.4;
+    z-index: -1;
+}
+
+.Polka {
+    background-image: radial-gradient(#e0f1f4 3px, #f096a0 2px);
+    background-size: 20px 20px;
+}
+
+/*=============
+base
+==============*/
+  
+html, body {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: YuGothic, "游ゴシック体", "Yu Gothic", "ヒラギノ角ゴ Pro", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+    letter-spacing: .025em;
+    line-height: 1.8;
+}
+* {
+    box-sizing: border-box;
+}
+
+.btn {
+    width: 100%;
+    border-radius: 15px;
+    background-color: #ffffff;
+    padding: 15px;
+    text-decoration: none;
+    font-size: 22px;
+    color:black;
+}
+
+.title {
+    width: 96%;
+    background-color:#e0f1f4;
+    position: relative;
+    padding: 0.5em 1em;
+    margin-left: auto;
+    margin-right: auto;
+    border: solid 2px black;
+    border-radius: 3px 0 3px 0;
+}
+  
+.title:before, .title:after {
+    content: '';
+    position: absolute;
+    width:10px;
+    height: 10px;
+    border: solid 2px black;
+    border-radius: 50%;
+}
+  
+.title:after {
+    top:-12px;
+    left:-10px;
+}
+.title:before {
+    bottom:-12px;
+    right:-10px;
+}
+
+.posetitle {
+    position: relative;
+    padding: 0.5em;
+    background: #e0f1f4;
+    color: #f096a0;
+}
+  
+.posetitle::before {
+    position: absolute;
+    content: '';
+    top: 100%;
+    left: 0;
+    border: none;
+    border-bottom: solid 15px transparent;
+    border-right: solid 20px rgb(149, 158, 155);
+}
+
+.posetitle2 {
+    position: relative;
+    padding: 0.5em;
+    background: #ffffff;
+    color: #f096a0;
+}
+  
+.posetitle2::before {
+    position: absolute;
+    content: '';
+    top: 100%;
+    left: 0;
+    border: none;
+    border-bottom: solid 15px transparent;
+    border-right: solid 20px rgb(149, 158, 155);
+}
+
+.Button-style {
+    font-size: 18px;
+    display: inline-block;
+    padding: 0.4em 1em 0.2em;
+    color: black;
+    border: black dashed 1px;
+    box-shadow: 0 0 0 0.2em black;
+    border-radius: 2.5px;
+    background-color:#ffffff;
+    cursor: pointer;
+}
+
+.Button-style2 {
+    font-size: 18px;
+    display: inline-block;
+    background: #ffffff;
+    color: #f096a0;
+    width: 80px;
+    height: 80px;
+    border: double 4px #f096a0;
+    border-radius: 50%;
+    text-align: center;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.Button-style3 {
+    font-size: 18px;
+    display: inline-block;
+    background: #ffffff;
+    color: #faca7b;
+    width: 80px;
+    height: 80px;
+    border: double 4px #faca7b;
+    border-radius: 50%;
+    text-align: center;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+/* --YouTubeサイズ調整-- */
+.video {
+    position: relative;
+    height: 0;
+    padding: 30px 0 56.25%;
+    overflow: hidden;
+}
+    
+.video iframe {
+    position: absolute;
+    top: 0;
+    left: 5%;
+    width: 90%;
+    height: 90%;
+}
+
+.container { 
+    padding-right: 15px; 
+    padding-left: 15px; 
+    margin-right: auto; 
+    margin-left: auto; 
+} 
+
+@media (min-width: 768px) { 
+    .container { 
+        width: 750px; 
+        } 
+    } 
+
+@media (min-width: 992px) { 
+    .container { 
+        width: 970px; 
+        } 
+    } 
+
+@media (min-width: 1200px) { 
+    .container { 
+        width: 1170px; 
+        } 
+    } 
